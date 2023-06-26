@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:theming_demo/book_model.dart';
+import 'package:theming_demo/book_theme_style.dart';
+import 'package:theming_demo/main.dart';
 
 class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
@@ -40,29 +43,42 @@ class _BooksScreenState extends State<BooksScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bookThemeStyle = Theme.of(context).extension<BookThemeStyle>();
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Flutter Theming Demo'),
+        title: Text(
+          'Flutter Theming Demo',
+          style: bookThemeStyle?.appBarStyle,
+        ),
       ),
       body: ListView.builder(
         itemCount: books.length,
         itemBuilder: (context, index) {
-          return ListTile(
-            leading: Image.network(books[index].cover),
-            title: Text(books[index].title),
-            subtitle: Text(books[index].author),
-            onTap: () => context.goNamed('detail', extra: books[index]),
+          return Card(
+            color: Theme.of(context).colorScheme.surface,
+            child: ListTile(
+              leading: Image.network(books[index].cover),
+              title: Text(books[index].title),
+              subtitle: Text(books[index].author),
+              onTap: () => context.goNamed('detail', extra: books[index]),
+            ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.light),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Tapped'),
-            ));
-          }),
+      floatingActionButton: Consumer(
+        builder: (context, ref, _) => FloatingActionButton(
+            child: const Icon(Icons.light),
+            onPressed: () {
+              var currentThemeMode = ref.read(themeModeProvider);
+              if (currentThemeMode == ThemeMode.light) {
+                ref.read(themeModeProvider.notifier).state = ThemeMode.dark;
+              } else {
+                ref.read(themeModeProvider.notifier).state = ThemeMode.light;
+              }
+            }),
+      ),
     );
   }
 }
